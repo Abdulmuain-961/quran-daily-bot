@@ -1,0 +1,56 @@
+# Posts 2 Quran pages + 1 hadith every day.
+# Main run 05:53 UAE (01:53 UTC). GitHub sometimes starts scheduled jobs late, so it lands ~6:00.
+# Backup run 07:23 UAE: if the first run was skipped by GitHub, this one posts; otherwise it does nothing.
+name: Daily Quran post
+
+on:
+  schedule:
+    - cron: "53 1 * * *"
+    - cron: "23 3 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only show today's post, do not publish"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-post
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Publish today's pages
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IMAGE_BASE_URL: ${{ vars.IMAGE_BASE_URL }}
+          GRAPH_API_VERSION: ${{ vars.GRAPH_API_VERSION }}
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            python3 bot.py --dry-run
+          else
+            python3 bot.py
+          fi
+
+      - name: Save progress (state.json)
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          git config user.name "quran-bot"
+          git config user.email "quran-bot@users.noreply.github.com"
+          git add state.json
+          if git diff --cached --quiet; then
+            echo "Nothing new to save."
+          else
+            git commit -m "Posted $(date -u +%F)"
+            git pull --rebase
+            git push
+          fi

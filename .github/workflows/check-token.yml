@@ -1,0 +1,17 @@
+# Run any time (Actions -> "Check token / find Instagram ID" -> Run workflow)
+# to see if the Meta token still works and to find the Instagram account ID.
+name: Check token / find Instagram ID
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Check
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+        run: python3 tools/check_token.py
