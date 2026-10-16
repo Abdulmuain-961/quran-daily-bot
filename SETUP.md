@@ -82,9 +82,14 @@ A *token* is the key that lets the bot post on your account. We create it for a 
 
 1. Actions → **Daily Quran post** → **Run workflow** (leave *"Only show today's post"* ticked) → Run.
    Open the log: you will see today's pages and the full caption. Nothing is published.
-2. Happy with it? **Run workflow** again and **untick** *"Only show today's post"*.
+2. **Only after the hafiz has approved every page**, turn on the switch:
+   repo → **Settings** → **Secrets and variables** → **Actions** → **Variables** tab → **New repository variable**
+   - Name: `POSTING_ENABLED` → Value: `true` → **Add variable**
+   > Until this variable says `true`, the bot never publishes anything — not on schedule, not by hand.
+   > The log just says `POSTING IS OFF - nothing was published.`
+3. **Run workflow** again and **untick** *"Only show today's post"*.
    → The first post goes live on your Instagram (pages 1 & 2).
-3. Done ✅ From tomorrow it posts automatically at about **6:00 AM UAE time**.
+4. Done ✅ From tomorrow it posts automatically at about **6:00 AM UAE time**.
    Every post saves its progress in `state.json`, so it always continues from the right page.
 
 ---
@@ -97,7 +102,7 @@ A *token* is the key that lets the bot post on your account. We create it for a 
 | Change the time | Edit the two `cron:` lines in `.github/workflows/daily-post.yml`. Times are **UTC** = UAE time − 4 hours. Example: `"53 1 * * *"` = 01:53 UTC = 05:53 UAE |
 | Start from a different page | Edit `state.json` → change `"next_page"` to an **odd** number (1, 3, 5 …) |
 | Remove a hadith I don't want | Add a line like `bukhari 6018` to `data/hadith_exclude.txt`, then ask someone to re-run `python tools/build_hadiths.py` (or remove its entry from `data/hadiths.json` directly) |
-| Pause the bot | Actions → Daily Quran post → **⋯** → **Disable workflow** (enable again the same way) |
+| Pause the bot | Change the variable `POSTING_ENABLED` to `false` (Settings → Secrets and variables → Actions → Variables). Set it back to `true` to resume. |
 
 ## If something goes wrong
 
@@ -112,3 +117,5 @@ GitHub emails you when a daily run fails. Open the failed run in **Actions** and
 | `(#190) Invalid OAuth access token` | The token was deleted or the System User lost access. Generate a new token (Part 2, step 4) and update the `IG_ACCESS_TOKEN` secret. |
 | `Unsupported get request` / `does not exist` for the user id | Wrong `IG_USER_ID`. Run **Check token / find Instagram ID** and copy the right number. |
 | `Already posted today` | Not an error — the backup run saw that today's post was already published. |
+| `POSTING IS OFF` | Not an error — the switch is off. Set the variable `POSTING_ENABLED` to `true` to go live. |
+| `were already published ... Not posting again` | Not an error — the post went out but saving progress failed last time. The bot saw the post on Instagram and only saved progress. |

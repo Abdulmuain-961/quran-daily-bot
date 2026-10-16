@@ -7,6 +7,8 @@ and starts a new khatma (complete reading) automatically after page 604.
 Needs 2 secrets (GitHub repo -> Settings -> Secrets and variables -> Actions):
     IG_ACCESS_TOKEN   Meta System User token (never expires)
     IG_USER_ID        the Instagram Business Account ID (a long number)
+and 1 variable (same page, "Variables" tab) — the on/off switch:
+    POSTING_ENABLED   must be exactly  true  or the bot never publishes
 
 Local test without posting:
     python bot.py --dry-run
@@ -118,6 +120,18 @@ def post_carousel(image_urls, caption):
     wait_ready(carousel, "carousel")
     return graph("POST", f"{ig}/media_publish", creation_id=carousel)["id"]
 
+def find_existing_post(p1, p2, state):
+    """If these pages were already published (e.g. the post worked but saving state.json failed),
+    return that post's media id so we never publish the same pages twice."""
+    marker = f"الصفحتان {ar(p1)} - {ar(p2)}"
+    khatma = f"الختمة رقم {ar(state['khatma'])}"
+    recent = graph("GET", f"{os.environ['IG_USER_ID']}/media", fields="id,caption", limit=5).get("data", [])
+    for m in recent:
+        caption = m.get("caption") or ""
+        if marker in caption and khatma in caption:
+            return m["id"]
+    return None
+
 
 # ---------------------------------------------------------------- page safety check
 def load_fingerprints():
@@ -187,8 +201,17 @@ def main():
     if args.dry_run:
         print("DRY RUN - nothing was published.")
         return
-    media_id = post_carousel(urls, caption)
-    print(f"Published! Instagram media id: {media_id}")
+    if os.environ.get("POSTING_ENABLED", "").strip().lower() != "true":
+        print("POSTING IS OFF - nothing was published.")
+        print("To go live: repo Settings -> Secrets and variables -> Actions -> Variables -> POSTING_ENABLED = true")
+        return
+
+    media_id = find_existing_post(p1, p2, state)
+    if media_id:
+        print(f"Pages {p1}-{p2} were already published (media id {media_id}). Not posting again, only saving progress.")
+    else:
+        media_id = post_carousel(urls, caption)
+        print(f"Published! Instagram media id: {media_id}")
 
     # move forward for tomorrow
     state["history"].append({"date": today, "pages": [p1, p2], "hadith": hadith.get("id"), "media_id": media_id})

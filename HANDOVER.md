@@ -48,6 +48,8 @@ You only step in when GitHub emails you that a run failed.
 | `STOP: ... is different from the approved page` أو `missing` | صورة صفحة تغيّرت أو حُذفت. أعد الملف الأصلي من النسخة الاحتياطية. **البوت لا ينشر أي صفحة لا تطابق البصمة المعتمدة** — هذا حماية لكتاب الله، لا تعطّلها. |
 | `version ... is deprecated` أو `Unsupported` | ميتا غيّرت إصدار الواجهة. غالباً يكفي حذف المتغير `GRAPH_API_VERSION` إن وُجد (Settings → Variables). وإلا اطلب من شخص يعرف Python مراجعة `bot.py` (الدوال `graph` و `post_carousel`). |
 | `actions/checkout` أو `Node` deprecated | حدّث رقم الإصدار في ملفات `.github/workflows/*.yml` (مثلاً `actions/checkout@v5` → أحدث إصدار). |
+| `POSTING IS OFF` | ليس خطأ: مفتاح التشغيل مغلق. لتشغيل النشر اجعل المتغير `POSTING_ENABLED` = `true` (Settings → Secrets and variables → Actions → Variables). |
+| `were already published ... Not posting again` | ليس خطأ: نُشرت الصفحتان سابقاً لكن حفظ التقدم فشل، فاكتشف البوت ذلك من إنستغرام وحفظ التقدم فقط دون نشر مكرر. |
 | لا يوجد أي تشغيل منذ مدة / No runs at all | GitHub يوقف الجدولة إذا لم يحدث أي نشاط في المستودع ٦٠ يوماً. ادخل Actions → Daily Quran post → **Enable workflow**، ثم شغّله يدوياً مرة. |
 
 بعد أي إصلاح: Actions → **Daily Quran post** → **Run workflow** مع إزالة علامة *Only show today's post* لتنشر منشور اليوم.
@@ -70,6 +72,7 @@ You only step in when GitHub emails you that a run failed.
 
 ## ٥. أمور يمكنك تغييرها بأمان | Safe things to change
 
+- إيقاف النشر مؤقتاً: اجعل المتغير `POSTING_ENABLED` = `false`، وأعده `true` للاستئناف
 - نص العنوان والهاشتاقات: `config.json`
 - وقت النشر: السطران `cron` في `.github/workflows/daily-post.yml` (بتوقيت UTC = توقيت الإمارات − ٤ ساعات)
 - حذف حديث: أضف رقمه في `data/hadith_exclude.txt` واحذف مدخله من `data/hadiths.json`

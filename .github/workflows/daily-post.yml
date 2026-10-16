@@ -34,6 +34,7 @@ jobs:
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
           IMAGE_BASE_URL: ${{ vars.IMAGE_BASE_URL }}
           GRAPH_API_VERSION: ${{ vars.GRAPH_API_VERSION }}
+          POSTING_ENABLED: ${{ vars.POSTING_ENABLED }}   # on/off switch: must be "true" to publish
         run: |
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             python3 bot.py --dry-run
